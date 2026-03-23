@@ -72,15 +72,33 @@ class VecPowerMonitorSensor(SensorEntity):
             try:
                 async with websockets.connect(uri) as websocket:
                     _LOGGER.info("Connected to WebSocket at %s", uri)
+                    # Send initial command
+                    await websocket.send(b'i')
+                    # Start periodic command sending
+                    self._send_task = self.hass.loop.create_task(self._send_periodic_commands(websocket))
                     async for message in websocket:
                         if isinstance(message, bytes):
                             self._parse_binary_message(message)
             except websockets.exceptions.ConnectionClosed:
                 _LOGGER.warning("WebSocket connection closed, reconnecting...")
+                if hasattr(self, '_send_task') and not self._send_task.done():
+                    self._send_task.cancel()
                 await asyncio.sleep(5)
             except Exception as e:
                 _LOGGER.error("WebSocket error: %s", e)
+                if hasattr(self, '_send_task') and not self._send_task.done():
+                    self._send_task.cancel()
                 await asyncio.sleep(5)
+
+    async def _send_periodic_commands(self, websocket) -> None:
+        """Send periodic 'g' commands to the device."""
+        while True:
+            await asyncio.sleep(1)
+            try:
+                await websocket.send(b'g')
+            except Exception as e:
+                _LOGGER.error("Failed to send command: %s", e)
+                break
 
     def _parse_binary_message(self, data: bytes) -> None:
         """Parse binary WebSocket message."""
