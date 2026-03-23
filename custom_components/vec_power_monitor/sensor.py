@@ -74,15 +74,15 @@ class VecPowerMonitorSensor(SensorEntity):
                     _LOGGER.info("Connected to WebSocket at %s", uri)
                     # Send initial command 'i'
                     await websocket.send(b'i')
-                    _LOGGER.info("WebSocket SENT: %s", repr(b'i'))
+                    _LOGGER.debug("Sent initial command: b'i'")
                     # Start periodic command sending (every 10 seconds)
                     self._send_task = self.hass.loop.create_task(self._send_periodic_commands(websocket))
                     async for message in websocket:
                         if isinstance(message, bytes):
-                            _LOGGER.info("WebSocket RECEIVED (binary): %s", message.hex())
+                            _LOGGER.debug("Received binary message: %s", message.hex())
                             self._parse_binary_message(message)
                         else:
-                            _LOGGER.info("WebSocket RECEIVED (text): %s", message)
+                            _LOGGER.debug("Received non-binary message: %s", message)
             except websockets.exceptions.ConnectionClosed as e:
                 _LOGGER.warning("WebSocket connection closed (%s), reconnecting...", e)
                 if hasattr(self, '_send_task') and not self._send_task.done():
@@ -100,7 +100,7 @@ class VecPowerMonitorSensor(SensorEntity):
             await asyncio.sleep(10)
             try:
                 await websocket.send(b'g')
-                _LOGGER.info("WebSocket SENT: %s", repr(b'g'))
+                _LOGGER.debug("Sent periodic command: b'g'")
             except Exception as e:
                 _LOGGER.error("Failed to send command: %s", e)
                 break
@@ -108,15 +108,23 @@ class VecPowerMonitorSensor(SensorEntity):
     def _parse_binary_message(self, data: bytes) -> None:
         """Parse binary WebSocket message."""
         if len(data) == 12:
-            # Config message: 10 bytes sliders + 2 bytes activeCh, ctIndex
-            # sliders[2], [5], [8] = onDelayMin for loads 0,1,2
-            # sliders[3], [6], [9] = offDelaySec
+            # Config/status message: 10 bytes sliders + 2 bytes activeCh, ctIndex
+            _LOGGER.info("12-byte config/status packet: %s", ' '.join(f'{b:02x}' for b in data))
             self._on_delay_min[0] = data[2]
             self._on_delay_min[1] = data[5]
             self._on_delay_min[2] = data[8]
             self._off_delay_sec[0] = data[3]
             self._off_delay_sec[1] = data[6]
             self._off_delay_sec[2] = data[9]
+            # Set sensors to unavailable/0 since this is not real-time data
+            if self._sensor_id in ("line1_current", "line2_current", "total_power"):
+                self._attr_native_value = 0.0
+                self.async_write_ha_state()
+            elif self._sensor_id.startswith("load"):
+                self._attr_native_value = "Unavailable"
+                self._attr_extra_state_attributes = {}
+                self.async_write_ha_state()
+            return
         elif len(data) == 13:
             # Real-time message
             try:
