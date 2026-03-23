@@ -132,7 +132,6 @@ class VecPowerMonitorSensor(SensorEntity):
         elif len(data) == 13:
             # Real-time message: parse as per protocol
             try:
-                # Unpack: 2x uint16 (rms1_sq, rms2_sq), 3x uint16 (sec1, sec2, sec3), 3x uint8 (status1, status2, status3)
                 rms1_sq = int.from_bytes(data[0:2], 'little')
                 rms2_sq = int.from_bytes(data[2:4], 'little')
                 sec1 = int.from_bytes(data[4:6], 'little')
@@ -147,7 +146,10 @@ class VecPowerMonitorSensor(SensorEntity):
                 power1 = rms1 * voltage
                 power2 = rms2 * voltage
                 total_power = power1 + power2
-
+                _LOGGER.info(
+                    "13-byte real-time packet: rms1_sq=%d rms2_sq=%d sec1=%d sec2=%d sec3=%d status1=%d status2=%d status3=%d rms1=%.2f rms2=%.2f power1=%.2f power2=%.2f total_power=%.2f",
+                    rms1_sq, rms2_sq, sec1, sec2, sec3, status1, status2, status3, rms1, rms2, power1, power2, total_power
+                )
                 if self._sensor_id == "line1_current":
                     self._attr_native_value = round(rms1, 1)
                     self.async_write_ha_state()
