@@ -2,12 +2,14 @@
 
 A custom Home Assistant integration for monitoring power from a VEC-A-60A-2C device via WebSocket.
 
+**Device Website**: [V-Electric](https://v-electric.com/)
+
 ## Installation
 
 1. Copy the `custom_components/vec_power_monitor` directory to your Home Assistant's `custom_components` directory.
 2. Restart Home Assistant.
 3. Add the integration through the UI: Settings > Devices & Services > Add Integration > VEC Power Monitor.
-4. Enter the host IP address and voltage for your VEC-A-60A-2C device.
+4. Enter the host IP address and voltage for your VEC-A-60A-2C device. The integration will test the WebSocket connection to ensure it's reachable.
 
 ## Configuration
 
@@ -18,10 +20,13 @@ A custom Home Assistant integration for monitoring power from a VEC-A-60A-2C dev
 
 The integration connects to the specified WebSocket URL and parses binary messages containing RMS current values for two lines.
 
-It creates three sensors:
+It creates six sensors:
 - Line 1 Current (A)
 - Line 2 Current (A)
 - Total Power (W) - calculated as (Line1 + Line2) × Voltage
+- Load 1 Status
+- Load 2 Status
+- Load 3 Status
 
 ## Features
 
@@ -45,6 +50,9 @@ entities:
   - entity: sensor.vec_power_monitor_192_168_1_100_line1_current  # Replace with your actual entity ID
   - entity: sensor.vec_power_monitor_192_168_1_100_line2_current
   - entity: sensor.vec_power_monitor_192_168_1_100_total_power
+  - entity: sensor.vec_power_monitor_192_168_1_100_load1_status
+  - entity: sensor.vec_power_monitor_192_168_1_100_load2_status
+  - entity: sensor.vec_power_monitor_192_168_1_100_load3_status
 ```
 
 ### Gauge Cards for Currents
