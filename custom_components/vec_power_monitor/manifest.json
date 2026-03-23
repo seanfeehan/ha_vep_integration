@@ -1,14 +1,14 @@
 {
   "domain": "vec_power_monitor",
   "name": "VEC Power Monitor",
-  "codeowners": ["@yourname"],
+  "codeowners": ["@seanfeehan"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/yourname/ha_vep_integration",
+  "documentation": "https://github.com/seanfeehan/ha_vep_integration",
   "homeassistant": "2023.1.0",
   "integration_type": "device",
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/yourname/ha_vep_integration/issues",
+  "issue_tracker": "https://github.com/seanfeehan/ha_vep_integration/issues",
   "requirements": ["websockets"],
   "version": "1.0.0"
 }

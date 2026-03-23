@@ -1,4 +1,9 @@
 {
   "name": "VEC Power Monitor",
-  "homeassistant": "2023.1.0"
+  "homeassistant": "2023.1.0",
+  "url": "https://github.com/seanfeehan/ha_vep_integration",
+  "filename": "custom_components/vec_power_monitor",
+  "content_in_root": false,
+  "zip_release": false,
+  "render_readme": true
 }
