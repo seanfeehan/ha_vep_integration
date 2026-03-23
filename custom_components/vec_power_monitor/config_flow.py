@@ -1,11 +1,14 @@
 """Config flow for VEC Power Monitor integration."""
 
+import logging
 import voluptuous as vol
 import websockets
 
 from homeassistant import config_entries
 
 from .const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 class VecPowerMonitorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for VEC Power Monitor."""
@@ -22,7 +25,12 @@ class VecPowerMonitorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 uri = f"ws://{host}/ws"
                 async with websockets.connect(uri) as websocket:
                     pass  # Just test connection
-            except Exception:
+            except Exception as e:
+                _LOGGER.error("Failed to connect to WebSocket at %s: %s", uri, e)
+                self.hass.components.persistent_notification.async_create(
+                    f"Failed to connect to VEC Power Monitor at {host}: {e}",
+                    title="VEC Power Monitor Setup Error",
+                )
                 errors["host"] = "cannot_connect"
 
             if not errors:
