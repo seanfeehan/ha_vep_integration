@@ -9,7 +9,7 @@ import websockets
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfMeasurement
+from homeassistant.const import ELECTRIC_CURRENT_AMPERE, POWER_WATT
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -28,9 +28,9 @@ async def async_setup_entry(
     host = config_entry.data["host"]
     voltage = config_entry.data["voltage"]
     async_add_entities([
-        VecPowerMonitorSensor(host, voltage, "line1_current", "Line 1 Current", UnitOfMeasurement.AMPERE, SensorDeviceClass.CURRENT),
-        VecPowerMonitorSensor(host, voltage, "line2_current", "Line 2 Current", UnitOfMeasurement.AMPERE, SensorDeviceClass.CURRENT),
-        VecPowerMonitorSensor(host, voltage, "total_power", "Total Power", UnitOfMeasurement.WATT, SensorDeviceClass.POWER),
+        VecPowerMonitorSensor(host, voltage, "line1_current", "Line 1 Current", ELECTRIC_CURRENT_AMPERE, SensorDeviceClass.CURRENT),
+        VecPowerMonitorSensor(host, voltage, "line2_current", "Line 2 Current", ELECTRIC_CURRENT_AMPERE, SensorDeviceClass.CURRENT),
+        VecPowerMonitorSensor(host, voltage, "total_power", "Total Power", POWER_WATT, SensorDeviceClass.POWER),
         VecPowerMonitorSensor(host, voltage, "load1_status", "Load 1 Status", None, None),
         VecPowerMonitorSensor(host, voltage, "load2_status", "Load 2 Status", None, None),
         VecPowerMonitorSensor(host, voltage, "load3_status", "Load 3 Status", None, None),
