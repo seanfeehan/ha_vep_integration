@@ -111,6 +111,7 @@ class VecPowerMonitorSensor(SensorEntity):
 
     def _parse_binary_message(self, data: bytes) -> None:
         """Parse binary WebSocket message."""
+        _LOGGER.warning("Binary message length: %d, hex: %s", len(data), data.hex())
         if len(data) == 12:
             # Config/status message: 10 bytes sliders + 2 bytes activeCh, ctIndex
             _LOGGER.info("12-byte config/status packet: %s", ' '.join(f'{b:02x}' for b in data))
@@ -129,18 +130,19 @@ class VecPowerMonitorSensor(SensorEntity):
                 self._attr_extra_state_attributes = {}
                 self.async_write_ha_state()
             return
-        elif len(data) == 13:
-            _LOGGER.warning("Entering 13-byte branch with data: %s", data.hex())
-            # Real-time message: parse as per protocol
+        elif len(data) >= 13:
+            _LOGGER.warning("Entering 13+ byte branch with data: %s", data.hex())
+            # Real-time message: parse as per protocol (use first 13 bytes)
             try:
-                rms1_sq = int.from_bytes(data[0:2], 'little')
-                rms2_sq = int.from_bytes(data[2:4], 'little')
-                sec1 = int.from_bytes(data[4:6], 'little')
-                sec2 = int.from_bytes(data[6:8], 'little')
-                sec3 = int.from_bytes(data[8:10], 'little')
-                status1 = data[10]
-                status2 = data[11]
-                status3 = data[12]
+                d = data[:13]
+                rms1_sq = int.from_bytes(d[0:2], 'little')
+                rms2_sq = int.from_bytes(d[2:4], 'little')
+                sec1 = int.from_bytes(d[4:6], 'little')
+                sec2 = int.from_bytes(d[6:8], 'little')
+                sec3 = int.from_bytes(d[8:10], 'little')
+                status1 = d[10]
+                status2 = d[11]
+                status3 = d[12]
                 rms1 = math.sqrt(rms1_sq)
                 rms2 = math.sqrt(rms2_sq)
                 voltage = float(self._voltage)
@@ -192,5 +194,5 @@ class VecPowerMonitorSensor(SensorEntity):
                         self._attr_extra_state_attributes = {}
                     self.async_write_ha_state()
             except Exception as e:
-                _LOGGER.error("Failed to parse 13-byte real-time message: %s | data: %s", e, data.hex())
+                _LOGGER.error("Failed to parse 13+ byte real-time message: %s | data: %s", e, data.hex())
         # Ignore other lengths
