@@ -72,15 +72,19 @@ class VecPowerMonitorSensor(SensorEntity):
             try:
                 async with websockets.connect(uri) as websocket:
                     _LOGGER.info("Connected to WebSocket at %s", uri)
-                    # Send initial command
+                    # Send initial command 'i'
                     await websocket.send(b'i')
-                    # Start periodic command sending
+                    _LOGGER.info("WebSocket SENT: %s", repr(b'i'))
+                    # Start periodic command sending (every 10 seconds)
                     self._send_task = self.hass.loop.create_task(self._send_periodic_commands(websocket))
                     async for message in websocket:
                         if isinstance(message, bytes):
+                            _LOGGER.info("WebSocket RECEIVED (binary): %s", message.hex())
                             self._parse_binary_message(message)
-            except websockets.exceptions.ConnectionClosed:
-                _LOGGER.warning("WebSocket connection closed, reconnecting...")
+                        else:
+                            _LOGGER.info("WebSocket RECEIVED (text): %s", message)
+            except websockets.exceptions.ConnectionClosed as e:
+                _LOGGER.warning("WebSocket connection closed (%s), reconnecting...", e)
                 if hasattr(self, '_send_task') and not self._send_task.done():
                     self._send_task.cancel()
                 await asyncio.sleep(5)
@@ -91,11 +95,12 @@ class VecPowerMonitorSensor(SensorEntity):
                 await asyncio.sleep(5)
 
     async def _send_periodic_commands(self, websocket) -> None:
-        """Send periodic 'g' commands to the device."""
+        """Send periodic 'g' commands to the device every 10 seconds."""
         while True:
-            await asyncio.sleep(1)
+            await asyncio.sleep(10)
             try:
                 await websocket.send(b'g')
+                _LOGGER.info("WebSocket SENT: %s", repr(b'g'))
             except Exception as e:
                 _LOGGER.error("Failed to send command: %s", e)
                 break
