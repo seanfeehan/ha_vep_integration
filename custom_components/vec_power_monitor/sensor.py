@@ -130,6 +130,7 @@ class VecPowerMonitorSensor(SensorEntity):
                 self.async_write_ha_state()
             return
         elif len(data) == 13:
+            _LOGGER.warning("Entering 13-byte branch with data: %s", data.hex())
             # Real-time message: parse as per protocol
             try:
                 rms1_sq = int.from_bytes(data[0:2], 'little')
@@ -191,5 +192,5 @@ class VecPowerMonitorSensor(SensorEntity):
                         self._attr_extra_state_attributes = {}
                     self.async_write_ha_state()
             except Exception as e:
-                _LOGGER.error("Failed to parse 13-byte real-time message: %s", e)
+                _LOGGER.error("Failed to parse 13-byte real-time message: %s | data: %s", e, data.hex())
         # Ignore other lengths
