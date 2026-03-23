@@ -75,6 +75,10 @@ class VecPowerMonitorSensor(SensorEntity):
                     # Send initial command 'i'
                     await websocket.send(b'i')
                     _LOGGER.debug("Sent initial command: b'i'")
+                    # Immediately send 'g' to request real-time data
+                    await asyncio.sleep(0.1)  # slight delay to mimic JS timing
+                    await websocket.send(b'g')
+                    _LOGGER.debug("Sent immediate command: b'g'")
                     # Start periodic command sending (every 10 seconds)
                     self._send_task = self.hass.loop.create_task(self._send_periodic_commands(websocket))
                     async for message in websocket:
