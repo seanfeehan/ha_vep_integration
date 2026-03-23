@@ -126,19 +126,24 @@ class VecPowerMonitorSensor(SensorEntity):
                 self.async_write_ha_state()
             return
         elif len(data) == 13:
-            # Real-time message
+            # Real-time message: parse as per protocol
             try:
-                # Unpack: 3 uint16 little endian, 3 uint8
-                rms1_sq, rms2_sq, sec1, sec2, sec3, status1, status2, status3 = struct.unpack('<HHHBBB', data)
+                # Unpack: 2x uint16 (rms1_sq, rms2_sq), 3x uint16 (sec1, sec2, sec3), 3x uint8 (status1, status2, status3)
+                rms1_sq = int.from_bytes(data[0:2], 'little')
+                rms2_sq = int.from_bytes(data[2:4], 'little')
+                sec1 = int.from_bytes(data[4:6], 'little')
+                sec2 = int.from_bytes(data[6:8], 'little')
+                sec3 = int.from_bytes(data[8:10], 'little')
+                status1 = data[10]
+                status2 = data[11]
+                status3 = data[12]
                 rms1 = math.sqrt(rms1_sq)
                 rms2 = math.sqrt(rms2_sq)
-                # Use configured voltage for power calculation
                 voltage = float(self._voltage)
                 power1 = rms1 * voltage
                 power2 = rms2 * voltage
                 total_power = power1 + power2
 
-                # Update sensors based on sensor_id
                 if self._sensor_id == "line1_current":
                     self._attr_native_value = round(rms1, 1)
                     self.async_write_ha_state()
@@ -149,10 +154,9 @@ class VecPowerMonitorSensor(SensorEntity):
                     self._attr_native_value = round(total_power, 1)
                     self.async_write_ha_state()
                 elif self._sensor_id.startswith("load"):
-                    load_index = int(self._sensor_id[4]) - 1  # load1 -> 0, etc.
+                    load_index = int(self._sensor_id[4]) - 1
                     status = [status1, status2, status3][load_index]
                     sec_cntr = [sec1, sec2, sec3][load_index]
-                    
                     if status == 0:
                         state = "Off"
                         countdown = None
@@ -174,13 +178,12 @@ class VecPowerMonitorSensor(SensorEntity):
                     else:
                         state = "Unknown"
                         countdown = None
-                    
                     self._attr_native_value = state
                     if countdown is not None:
                         self._attr_extra_state_attributes = {"countdown_seconds": countdown}
                     else:
                         self._attr_extra_state_attributes = {}
                     self.async_write_ha_state()
-            except struct.error as e:
-                _LOGGER.error("Failed to parse binary message: %s", e)
+            except Exception as e:
+                _LOGGER.error("Failed to parse 13-byte real-time message: %s", e)
         # Ignore other lengths

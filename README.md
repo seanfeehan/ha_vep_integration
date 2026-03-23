@@ -4,12 +4,6 @@ A custom Home Assistant integration for monitoring power from a VEC-A-60A-2C dev
 
 **Device Website**: [V-Electric](https://v-electric.com/)
 
-## Branding (logo)
-
-![VEC logo](custom_components/vec_power_monitor/vec_logo.png)
-
-*Note: Place the official logo at `custom_components/vec_power_monitor/vec_logo.png`.*
-
 ## Installation
 
 1. Copy the `custom_components/vec_power_monitor` directory to your Home Assistant's `custom_components` directory.
