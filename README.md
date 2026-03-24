@@ -47,12 +47,12 @@ Here are some suggested Lovelace card configurations for displaying your VEC Pow
 type: entities
 title: VEC Power Monitor
 entities:
-  - entity: sensor.vec_power_monitor_192_168_1_100_line1_current  # Replace with your actual entity ID
-  - entity: sensor.vec_power_monitor_192_168_1_100_line2_current
-  - entity: sensor.vec_power_monitor_192_168_1_100_total_power
-  - entity: sensor.vec_power_monitor_192_168_1_100_load1_status
-  - entity: sensor.vec_power_monitor_192_168_1_100_load2_status
-  - entity: sensor.vec_power_monitor_192_168_1_100_load3_status
+  - entity: sensor.line1_current  # Replace with your actual entity ID
+  - entity: sensor.line2_current
+  - entity: sensor.total_power
+  - entity: sensor.load1_status
+  - entity: sensor.load2_status
+  - entity: sensor.load3_status
 ```
 
 ### Gauge Cards for Currents & Power
@@ -60,7 +60,7 @@ entities:
 type: horizontal-stack
 cards:
   - type: gauge
-    entity: sensor.vec_power_monitor_192_168_1_100_line1_current  # Replace with your actual entity ID
+    entity: sensor.line1_current  # Replace with your actual entity ID
     name: Line 1 Current
     unit: A
     min: 0
@@ -70,7 +70,7 @@ cards:
       yellow: 60
       red: 80
   - type: gauge
-    entity: sensor.vec_power_monitor_192_168_1_100_line2_current
+    entity: sensor.line2_current
     name: Line 2 Current
     unit: A
     min: 0
@@ -80,7 +80,7 @@ cards:
       yellow: 60
       red: 80
   - type: gauge
-    entity: sensor.vec_power_monitor_192_168_1_100_total_power
+    entity: sensor.total_power
     name: Total Power
     unit: W
     min: 0
@@ -96,7 +96,7 @@ cards:
 type: history-graph
 title: Power Consumption
 entities:
-  - entity: sensor.vec_power_monitor_192_168_1_100_total_power  # Replace with your actual entity ID
+  - entity: sensor.total_power  # Replace with your actual entity ID
 hours_to_show: 24
 ```
 
