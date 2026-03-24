@@ -72,41 +72,41 @@ class VecPowerMonitorSensor(SensorEntity):
             try:
                 async with websockets.connect(uri) as websocket:
                     _LOGGER.info("Connected to WebSocket at %s", uri)
-                    # Send initial command 'i'
+                    # Match JS: first handleWebSocket call sends 'i' after 1s
+                    await asyncio.sleep(1)
                     await websocket.send(b'i')
                     _LOGGER.debug("Sent initial command: b'i'")
-                    # Immediately send 'g' to request real-time data
-                    await asyncio.sleep(0.1)  # slight delay to mimic JS timing
-                    await websocket.send(b'g')
-                    _LOGGER.debug("Sent immediate command: b'g'")
-                    # Start periodic command sending (every 10 seconds)
+                    # Start periodic 'g' command sending every 1s (matches JS setInterval 1000ms)
                     self._send_task = self.hass.loop.create_task(self._send_periodic_commands(websocket))
                     async for message in websocket:
                         if isinstance(message, bytes):
-                            _LOGGER.debug("Received binary message: %s", message.hex())
+                            _LOGGER.debug("Received binary message (%d bytes): %s", len(message), message.hex())
                             self._parse_binary_message(message)
                         else:
                             _LOGGER.debug("Received non-binary message: %s", message)
             except websockets.exceptions.ConnectionClosed as e:
-                _LOGGER.debug("WebSocket connection closed (%s), reconnecting...", e)
+                _LOGGER.warning(
+                    "WebSocket connection closed: code=%s reason=%s",
+                    e.code if hasattr(e, 'code') else 'unknown',
+                    e.reason if hasattr(e, 'reason') else 'unknown',
+                )
                 if hasattr(self, '_send_task') and not self._send_task.done():
                     self._send_task.cancel()
-                await asyncio.sleep(5)
+                await asyncio.sleep(10)
             except Exception as e:
                 _LOGGER.error("WebSocket error: %s", e)
                 if hasattr(self, '_send_task') and not self._send_task.done():
                     self._send_task.cancel()
-                await asyncio.sleep(5)
+                await asyncio.sleep(10)
 
     async def _send_periodic_commands(self, websocket) -> None:
-        """Send periodic 'g' commands to the device every 10 seconds."""
+        """Send periodic 'g' commands every 1s to match JS setInterval(handleWebSocket, 1000)."""
         while True:
-            await asyncio.sleep(10)
+            await asyncio.sleep(1)
             try:
                 await websocket.send(b'g')
-                _LOGGER.debug("Sent periodic command: b'g'")
             except Exception as e:
-                _LOGGER.error("Failed to send command: %s", e)
+                _LOGGER.debug("Periodic send failed (connection likely closed): %s", e)
                 break
 
     def _parse_binary_message(self, data: bytes) -> None:
