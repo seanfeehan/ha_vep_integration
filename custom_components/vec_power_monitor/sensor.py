@@ -18,6 +18,7 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 DEBOUNCE_THRESHOLD = 5
+CURRENT_ZERO_DEBOUNCE_THRESHOLD = 3
 
 
 async def async_setup_entry(
@@ -62,9 +63,11 @@ class VecPowerMonitorSensor(SensorEntity):
         # For load delays
         self._on_delay_min = [0, 0, 0]
         self._off_delay_sec = [0, 0, 0]
-        # Debounce for load status: require 3 consistent readings before updating
+        # Debounce for load status: require consistent readings before updating
         self._load_status_debounce_count = 0
         self._load_status_last_raw = None
+        # Debounce for current sensors going to zero
+        self._current_zero_debounce_count = 0
 
     async def async_added_to_hass(self) -> None:
         """Run when entity is added to hass."""
@@ -162,10 +165,24 @@ class VecPowerMonitorSensor(SensorEntity):
                     rms1_sq, rms2_sq, sec1, sec2, sec3, status1, status2, status3, rms1, rms2, power1, power2, total_power
                 )
                 if self._sensor_id == "line1_current":
-                    self._attr_native_value = round(rms1, 1)
+                    value = round(rms1, 1)
+                    if value == 0.0:
+                        self._current_zero_debounce_count += 1
+                        if self._current_zero_debounce_count < CURRENT_ZERO_DEBOUNCE_THRESHOLD:
+                            return
+                    else:
+                        self._current_zero_debounce_count = 0
+                    self._attr_native_value = value
                     self.async_write_ha_state()
                 elif self._sensor_id == "line2_current":
-                    self._attr_native_value = round(rms2, 1)
+                    value = round(rms2, 1)
+                    if value == 0.0:
+                        self._current_zero_debounce_count += 1
+                        if self._current_zero_debounce_count < CURRENT_ZERO_DEBOUNCE_THRESHOLD:
+                            return
+                    else:
+                        self._current_zero_debounce_count = 0
+                    self._attr_native_value = value
                     self.async_write_ha_state()
                 elif self._sensor_id == "total_power":
                     self._attr_native_value = round(total_power, 1)
