@@ -88,7 +88,7 @@ class VecPowerMonitorSensor(SensorEntity):
                         else:
                             _LOGGER.debug("Received non-binary message: %s", message)
             except websockets.exceptions.ConnectionClosed as e:
-                _LOGGER.warning("WebSocket connection closed (%s), reconnecting...", e)
+                _LOGGER.debug("WebSocket connection closed (%s), reconnecting...", e)
                 if hasattr(self, '_send_task') and not self._send_task.done():
                     self._send_task.cancel()
                 await asyncio.sleep(5)
@@ -111,7 +111,7 @@ class VecPowerMonitorSensor(SensorEntity):
 
     def _parse_binary_message(self, data: bytes) -> None:
         """Parse binary WebSocket message."""
-        _LOGGER.warning("Binary message length: %d, hex: %s", len(data), data.hex())
+        _LOGGER.debug("Binary message length: %d, hex: %s", len(data), data.hex())
         if len(data) == 12:
             # Config/status message: 10 bytes sliders + 2 bytes activeCh, ctIndex
             _LOGGER.info("12-byte config/status packet: %s", ' '.join(f'{b:02x}' for b in data))
@@ -131,7 +131,7 @@ class VecPowerMonitorSensor(SensorEntity):
                 self.async_write_ha_state()
             return
         elif len(data) >= 13:
-            _LOGGER.warning("Entering 13+ byte branch with data: %s", data.hex())
+            _LOGGER.debug("Entering 13+ byte branch with data: %s", data.hex())
             # Real-time message: parse as per protocol (use first 13 bytes)
             try:
                 d = data[:13]
