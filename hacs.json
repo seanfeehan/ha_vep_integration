@@ -6,5 +6,5 @@
   "content_in_root": false,
   "zip_release": false,
   "render_readme": true,
-  "logo": "https://raw.githubusercontent.com/seanfeehan/ha_vep_integration/main/custom_components/vec_power_monitor/vec_logo.png"
+  "logo": "https://raw.githubusercontent.com/seanfeehan/ha_vep_integration/main/custom_components/vec_power_monitor/icon.png"
 }

@@ -17,8 +17,8 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-DEBOUNCE_THRESHOLD = 5
-CURRENT_ZERO_DEBOUNCE_THRESHOLD = 3
+DEBOUNCE_THRESHOLD = 10
+CURRENT_ZERO_DEBOUNCE_THRESHOLD = 5
 
 
 async def async_setup_entry(
