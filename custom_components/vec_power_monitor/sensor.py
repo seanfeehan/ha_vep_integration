@@ -17,6 +17,8 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+DEBOUNCE_THRESHOLD = 5
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -178,7 +180,7 @@ class VecPowerMonitorSensor(SensorEntity):
                     else:
                         self._load_status_last_raw = status
                         self._load_status_debounce_count = 1
-                    if self._load_status_debounce_count < 3:
+                    if self._load_status_debounce_count < DEBOUNCE_THRESHOLD:
                         return
                     if status == 0:
                         state = "Off"
