@@ -60,6 +60,9 @@ class VecPowerMonitorSensor(SensorEntity):
         # For load delays
         self._on_delay_min = [0, 0, 0]
         self._off_delay_sec = [0, 0, 0]
+        # Debounce for load status: require 3 consistent readings before updating
+        self._load_status_debounce_count = 0
+        self._load_status_last_raw = None
 
     async def async_added_to_hass(self) -> None:
         """Run when entity is added to hass."""
@@ -169,6 +172,14 @@ class VecPowerMonitorSensor(SensorEntity):
                     load_index = int(self._sensor_id[4]) - 1
                     status = [status1, status2, status3][load_index]
                     sec_cntr = [sec1, sec2, sec3][load_index]
+                    # Debounce: require 3 consistent readings
+                    if status == self._load_status_last_raw:
+                        self._load_status_debounce_count += 1
+                    else:
+                        self._load_status_last_raw = status
+                        self._load_status_debounce_count = 1
+                    if self._load_status_debounce_count < 3:
+                        return
                     if status == 0:
                         state = "Off"
                         countdown = None
