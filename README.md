@@ -55,7 +55,7 @@ entities:
   - entity: sensor.vec_power_monitor_192_168_1_100_load3_status
 ```
 
-### Gauge Cards for Currents
+### Gauge Cards for Currents & Power
 ```yaml
 type: horizontal-stack
 cards:
@@ -64,13 +64,31 @@ cards:
     name: Line 1 Current
     unit: A
     min: 0
-    max: 60
+    max: 100
+    severity:
+      green: 0
+      yellow: 60
+      red: 80
   - type: gauge
     entity: sensor.vec_power_monitor_192_168_1_100_line2_current
     name: Line 2 Current
     unit: A
     min: 0
-    max: 60
+    max: 100
+    severity:
+      green: 0
+      yellow: 60
+      red: 80
+  - type: gauge
+    entity: sensor.vec_power_monitor_192_168_1_100_total_power
+    name: Total Power
+    unit: W
+    min: 0
+    max: 24000  # 100A × 120V × 2 lines — adjust if your voltage differs
+    severity:
+      green: 0
+      yellow: 14400
+      red: 19200
 ```
 
 ### Power Consumption Chart
