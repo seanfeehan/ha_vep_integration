@@ -85,11 +85,14 @@ class VecPowerMonitorSensor(SensorEntity):
                         else:
                             _LOGGER.debug("Received non-binary message: %s", message)
             except websockets.exceptions.ConnectionClosed as e:
-                _LOGGER.warning(
-                    "WebSocket connection closed: code=%s reason=%s",
-                    e.code if hasattr(e, 'code') else 'unknown',
-                    e.reason if hasattr(e, 'reason') else 'unknown',
-                )
+                code = e.code if hasattr(e, 'code') else None
+                reason = e.reason if hasattr(e, 'reason') else ''
+                close_reasons = {1000: "normal closure", 1005: "no status received (device dropped connection)"}
+                if code in (1005, 1000, None):
+                    desc = close_reasons.get(code, "unknown")
+                    _LOGGER.debug("WebSocket closed (code=%s: %s), reconnecting...", code, desc)
+                else:
+                    _LOGGER.warning("WebSocket closed unexpectedly: code=%s reason=%s", code, reason)
                 if hasattr(self, '_send_task') and not self._send_task.done():
                     self._send_task.cancel()
                 await asyncio.sleep(10)
